@@ -3,8 +3,10 @@ node_modules
 coverage
 coverage.json
 typechain
+.vscode
 
 #Hardhat files
 cache
 artifacts
 args.js
+bin
