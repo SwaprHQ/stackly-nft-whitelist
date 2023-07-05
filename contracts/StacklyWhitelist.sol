@@ -7,21 +7,28 @@ import {Counters} from "@openzeppelin/contracts/utils/Counters.sol";
 
 error NotAllowed(address, address, uint256, bytes);
 error AlreadyMinted();
+error MaxSupplyReached();
 
 contract StacklyWhitelist is ERC721, Ownable {
   using Counters for Counters.Counter;
   
   string private baseURI;
+  uint256 public maxSupply;
   Counters.Counter private tokenIdCounter;
 
   constructor(string memory _name, string memory _symbol, string memory __baseURI) ERC721(_name, _symbol) {
+    maxSupply = 1000;
     baseURI = __baseURI;
     tokenIdCounter.increment();
   }
 
-  function mint() external {
+  function getBetaAccess() external {
     if (balanceOf(msg.sender) > 0) {
       revert AlreadyMinted();
+    }
+
+    if (totalSupply() >= maxSupply) {
+      revert MaxSupplyReached();
     }
 
     uint256 tokenId = tokenIdCounter.current();
@@ -43,9 +50,6 @@ contract StacklyWhitelist is ERC721, Ownable {
     return baseURI;
   }
 
-  /**
-    * @dev See {IERC721Metadata-tokenURI}.
-    */
   function tokenURI(uint256 tokenId) public view virtual override returns (string memory) {
       _requireMinted(tokenId);
       return _baseURI();
@@ -53,6 +57,10 @@ contract StacklyWhitelist is ERC721, Ownable {
 
   function setBaseURI(string memory __baseURI) external onlyOwner {
     baseURI = __baseURI;
+  }
+
+  function setMaxSupply(uint256 _maxSupply) external onlyOwner {
+    maxSupply = _maxSupply;
   }
 
   function transferFrom(address from, address to, uint256 tokenId) public virtual override {
